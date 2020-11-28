@@ -67,6 +67,12 @@ function draw() {
 
         case 'sing':
             background(0); // 배경 & 화면 클래스, 가사
+
+            if (!song.isPlaying()) {
+                state = 'score';
+                return;
+            }
+
             if (song.currentTime() < 7) {
                 fill(255, 255, 77);
                 text('Must Have Love', 450, 420);
@@ -107,7 +113,10 @@ function draw() {
             text('끝', 450, 450);
             break;
 
-        default: // loading 같은 것
+        default: // loading 등등
+            background(0);
+            fill('white');
+            text('로딩중..', 450, 450);
             break;
     }
 
@@ -140,9 +149,8 @@ function keyPressed() {
                     songTitle = songs[songNum].title;
                     songSinger = songs[songNum].singer;
                     lyrics = songs[songNum].lyrics;
-                    //state = 'loading';
+                    state = 'loading';
                     song = loadSound(`assets/${songNum}.mp3`, startSing); 
-                    // 로드에 시간 좀 걸리는 것 고려. 3초 정도 로딩 화면 만들자!(곳곳에 쓰자)
                 } else {
                     alert('해당하는 노래가 없습니다! 번호를 확인해주세요!');
                 }
@@ -153,6 +161,9 @@ function keyPressed() {
             } else {
                 songNum = songNum + key;
             }
+            break;
+        case 'sing':
+            //리모콘 기능들: 간주점프, 취소
             break;
         default:
             break;
