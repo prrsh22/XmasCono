@@ -1,4 +1,9 @@
-let state = 'ready';
+let state = 'initial';
+
+// Background
+let bg;
+let garland;
+let presents;
 
 //initial
 let initBtn;
@@ -18,46 +23,90 @@ let lyrics;
 let song; // mr 불러올 것(loadSound)
 
 let index = 0; // 노래 내 인덱스(경과시간에 따른)
-let partScore = []; // 구간 점수(구간 내에 점수 다 저장해서 구간 끝날 때 평균 내고 리셋)
-let scores = []; // 구간당 평균 저장해서 마지막에 평균 냄
+let partScore = []; // 구간 점수(구간 내에 점수 다 저장하는 곳. 구간 끝날 때 평균 내고 [] 리셋)
+let scores = []; // 구간당 평균 저장하는 곳. 마지막에 평균 낼 것
 let finalScore; // scores의 avg
 
+let songStage = 'hair';
+let character;
+let parts = ['hair', 'top', 'bottom', 'shoes', 'face'];
+let clothes = {
+    hair: [],
+    top: [],
+    bottom: [],
+    shoes: [],
+    face: []
+} // 옷 이미지들 불러올 곳(preload)
+
+let clothesGot = []; //구간마다 딴 옷
+
+let mic;
+let micLevel;
+
 //score
+//머리, 상의, 하의, 신발, 표정 순 - 앞의 scores에 따라 불러오면 됨
 
 
 function preload() {
-    //노래를 미리 가져와 두는 게 나을 것 같기도 한데... 너무 오래 걸릴까
-}
+    //이미지는 프리로드. 노래는 안하는 게 나을듯 어차피 loading 화면 필요(근데 p5에서 너무오래걸려)
+    bg = loadImage('assets/images/background.png');
+    garland = loadImage('assets/images/garland.png');
+    presents = loadImage('assets/images/presents.png');
+    
+    parts.forEach( part => {
+        let images = [];
+        for (let i = 0; i < 3; i++) {
+            let img = loadImage(`assets/images/${part}${i}.png`);
+            images.push(img);
+        }
+        clothes[part] = images;
+    });
+
+    character = loadImage('assets/images/character.png');
+};
 
 function setup() {
     createCanvas(900, 900);
     initBtn = new Button('시작', 30, 450, 700, 200, 100);
     iPrevBtn = new Button('<', 50, );
+    mic = new p5.AudioIn();
+    mic.start();
 }
 
 function draw() {
+
     rectMode(CENTER);
     textAlign(CENTER, CENTER);
+    imageMode(CENTER);
+
+    image(bg,450,450,920,920);
+    image(garland,450,85,900,150);
+    image(presents,450,790,700,150);
+
+    outsideBG();    
 
     switch(state){
         case 'initial':
-            background(0); // 시작 화면 클래스 가져오면 됨
+            initialBG(); // 시작 화면 클래스 가져오면 됨
             initBtn.show();
             break;
 
         case 'instruction':
-            background(0); // 노래방 배경 클래스
-            fill('white');
+            instructionBG();
+            fill(0);
             text('설명', 450, 450);
             // const textBox = textBox(iStage); textBox.show()
             // iNextBtn, iPrevBtn
             break;
 
         case 'ready':
-            background(0); // 배경 & 화면 클래스. 노래 목록도. 목록에 시작 버튼, 곡번호 입력칸도!
+            // 배경 & 화면 클래스. 노래 목록도. 목록에 시작 버튼, 곡번호 입력칸도!
             rect(450, 450, 300, 100);
             textSize(30);
+            push();
+            fill(0);
             text(`${songNum}`, 450, 450);
+            pop();
 
             if (songs[songNum]) {
                 //rect(450, 200, 300, 100);
@@ -66,56 +115,32 @@ function draw() {
             break;
 
         case 'sing':
-            background(0); // 배경 & 화면 클래스, 가사
-
             if (!song.isPlaying()) {
                 state = 'score';
                 return;
             }
-
-            if (song.currentTime() < 7) {
-                fill(255, 255, 77);
-                text('Must Have Love', 450, 420);
-                text('- 브라운아이드걸스, SG워너비', 450, 460);
-            }
-
-            if (index < lyrics.length - 2) {
-                if (song.currentTime() > lyrics[index][0]){
-                  index++;
-                }
-            }
             
-            if (index < lyrics.length - 1) {
-            
-                if (index % 2 === 0) {
-                    fill(153, 255, 153);
-                    text(lyrics[index][1], 450, 820);
-                    fill(255);
-                    text(lyrics[index+1][1], 450, 860);
-                } else {
-                    fill(153, 255, 153);
-                    text(lyrics[index][1], 450, 820);
-                    fill(255);
-                    text(lyrics[index+1][1], 450, 860);
-                }
-            }
+            singBG();
+            image(character, 285, 390, 482/3, 789/3);
+            showLyrics();
+            showScore();
+
             break;
             
         case 'score':
-            background(0); // 점수 화면 클래스
-            fill('white');
+            // 점수 화면 클래스
+            fill(0);
             text('점수', 450, 450);
             break;
 
         case 'end':
-            background(0); // 시작화면 클래스
-            fill('white');
+            endingBG();
+            fill(0);
             text('끝', 450, 450);
             break;
 
         default: // loading 등등
-            background(0);
-            fill('white');
+            fill(0);
             text('로딩중..', 450, 450);
             break;
     }
@@ -131,6 +156,20 @@ function mousePressed() {
     switch(state){
         case 'initial':
             if (initBtn.over(mouseX, mouseY)) state = 'instruction';
+            break;
+        case 'instruction':
+            state = 'ready';
+            break;
+        case 'ready':
+            break;
+        case 'score':
+            // 노래 끝났을 때 초기화 꼭! or 퇴장시
+            songNum = '';
+            index = 0;
+            state = 'end';
+            break;
+        case 'end':
+            state = 'ready';
             break;
         default:
             break;
@@ -150,7 +189,7 @@ function keyPressed() {
                     songSinger = songs[songNum].singer;
                     lyrics = songs[songNum].lyrics;
                     state = 'loading';
-                    song = loadSound(`assets/${songNum}.mp3`, startSing); 
+                    song = loadSound(`assets/songs/${songNum}.mp3`, startSing); 
                 } else {
                     alert('해당하는 노래가 없습니다! 번호를 확인해주세요!');
                 }
@@ -163,9 +202,62 @@ function keyPressed() {
             }
             break;
         case 'sing':
-            //리모콘 기능들: 간주점프, 취소
+            //리모콘 기능들
+            //간주점프
+            if (key === 'j' && ['전주 중', '간주 중'].includes(lyrics[index][1])) {
+                song.jump(lyrics[index][0]);
+            } else if (key === 'c') {
+                //취소
+                song.stop();
+            }
             break;
         default:
             break;
     }
+}
+
+function showLyrics() {
+    if (song.currentTime() < 7) {
+        fill(255, 255, 77);
+        text(`${songTitle}`, 450, 420);
+        text(`- ${songSinger}`, 450, 460);
+    }
+
+    if (index < lyrics.length - 2) {
+        if (song.currentTime() > lyrics[index][0]){
+          index++;
+        }
+    }
+    
+    if (index < lyrics.length - 1) {
+    
+        if (index % 2 === 0) {
+            fill(153, 255, 153);
+            text(lyrics[index][1], 450, 820);
+            fill(255);
+            text(lyrics[index+1][1], 450, 860);
+        } else {
+            fill(153, 255, 153);
+            text(lyrics[index][1], 450, 820);
+            fill(255);
+            text(lyrics[index+1][1], 450, 860);
+        }
+    }
+}
+
+function showScore() {
+    // 1. 스테이지에 따른 캐릭터와 옷장
+    if (song.currentTime() > 7) {
+        clothes[songStage].forEach( cloth => {
+            const index = clothes[songStage].indexOf(cloth);
+            image(cloth, 300 + index * 110, 400, 100, 100);
+        });
+    }
+    // 2. 점수에 따라 옷장 사이를 움직이는 화살표
+    if (song.currentTime() > 7 && !(['전주 중', '간주 중'].includes(lyrics[index][1]))) {
+        micLevel = Math.min(int(1000 * mic.getLevel()), 100);
+        rect(300 + micLevel*2.5, 510, 10, 30);
+    }
+
+    // 3. 점수(구간)에 따라 달라지는 응원 멘트
 }
