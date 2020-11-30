@@ -43,8 +43,10 @@ let clothesGot = []; //구간마다 딴 옷
 let mic;
 let micLevel;
 
-//score
+//end
 //머리, 상의, 하의, 신발, 표정 순 - 앞의 scores에 따라 불러오면 됨
+let restartBtn;
+let recordBtn;
 
 
 function preload() {
@@ -69,6 +71,7 @@ function setup() {
     createCanvas(900, 900);
     initBtn = new Button('시작', 30, 450, 700, 200, 100);
     iPrevBtn = new Button('<', 50, );
+    restartBtn = new Button('다시 도전!', 30, 450, 600, 200, 100);
     mic = new p5.AudioIn();
     mic.start();
 }
@@ -87,7 +90,7 @@ function draw() {
 
     switch(state){
         case 'initial':
-            initialBG(); // 시작 화면 클래스 가져오면 됨
+            initialBG();
             initBtn.show();
             break;
 
@@ -101,6 +104,7 @@ function draw() {
 
         case 'ready':
             // 배경 & 화면 클래스. 노래 목록도. 목록에 시작 버튼, 곡번호 입력칸도!
+            fill(255);
             rect(450, 450, 300, 100);
             textSize(30);
             push();
@@ -116,27 +120,38 @@ function draw() {
 
         case 'sing':
             if (!song.isPlaying()) {
-                state = 'score';
+                state = 'end';
                 return;
             }
             
             singBG();
-            image(character, 285, 390, 482/3, 789/3);
             showLyrics();
-            showScore();
+            push();
+            textSize(25);
+            fill('yellow');
+            text(`현재 곡: ${songTitle} - ${songSinger}`, 450, 200);
+            pop();
 
-            break;
+
+            if (song.currentTime() < 7) {
+                fill(255);
+                rect(450, 390, 750, 340);
+                fill(0);
+                text(`${songTitle}`, 450, 360);
+                text(`- ${songSinger}`, 450, 400);
+            } else {
+                image(character, 285, 390, 482/3, 789/3);
+                showScore();
+            }
             
-        case 'score':
-            // 점수 화면 클래스
-            fill(0);
-            text('점수', 450, 450);
+
             break;
 
         case 'end':
             endingBG();
             fill(0);
             text('끝', 450, 450);
+            restartBtn.show();
             break;
 
         default: // loading 등등
@@ -162,13 +177,10 @@ function mousePressed() {
             break;
         case 'ready':
             break;
-        case 'score':
-            // 노래 끝났을 때 초기화 꼭! or 퇴장시
+        case 'end':
             songNum = '';
             index = 0;
             state = 'end';
-            break;
-        case 'end':
             state = 'ready';
             break;
         default:
@@ -217,11 +229,6 @@ function keyPressed() {
 }
 
 function showLyrics() {
-    if (song.currentTime() < 7) {
-        fill(255, 255, 77);
-        text(`${songTitle}`, 450, 420);
-        text(`- ${songSinger}`, 450, 460);
-    }
 
     if (index < lyrics.length - 2) {
         if (song.currentTime() > lyrics[index][0]){
@@ -233,30 +240,34 @@ function showLyrics() {
     
         if (index % 2 === 0) {
             fill(153, 255, 153);
-            text(lyrics[index][1], 450, 820);
+            text(lyrics[index][1], 450, 595);
             fill(255);
-            text(lyrics[index+1][1], 450, 860);
+            text(lyrics[index+1][1], 450, 665);
         } else {
             fill(153, 255, 153);
-            text(lyrics[index][1], 450, 820);
+            text(lyrics[index][1], 450, 595);
             fill(255);
-            text(lyrics[index+1][1], 450, 860);
+            text(lyrics[index+1][1], 450, 665);
         }
     }
 }
 
 function showScore() {
     // 1. 스테이지에 따른 캐릭터와 옷장
-    if (song.currentTime() > 7) {
-        clothes[songStage].forEach( cloth => {
-            const index = clothes[songStage].indexOf(cloth);
-            image(cloth, 300 + index * 110, 400, 100, 100);
-        });
-    }
+    clothes[songStage].forEach( cloth => {
+        const index = clothes[songStage].indexOf(cloth);
+        image(cloth, 695.25 - index * 102.25, 400, 90, 90);
+    });
     // 2. 점수에 따라 옷장 사이를 움직이는 화살표
     if (song.currentTime() > 7 && !(['전주 중', '간주 중'].includes(lyrics[index][1]))) {
         micLevel = Math.min(int(1000 * mic.getLevel()), 100);
-        rect(300 + micLevel*2.5, 510, 10, 30);
+        push();
+        fill(255,0,0);
+        stroke(0);
+        translate(455+ micLevel * 3,370);
+        rotate(radians(180));
+        triangle(0,40,40,40,20,0)
+        pop(); // point
     }
 
     // 3. 점수(구간)에 따라 달라지는 응원 멘트

@@ -32,7 +32,7 @@ function singBG () {
     rectMode(CENTER);
     fill(255,255,246);
     rect(450,450,750,500);
-    //screan
+    //screen
   
     noStroke();
     fill(225,242,230)
@@ -41,7 +41,7 @@ function singBG () {
     stroke(0);
     fill(0,51,153);
     rect(450,630,750,140); // lyrics
-    rect(450,200,750,40); // next song
+    rect(450,200,750,40); // current song
     
     stroke(0);
     rect(590,400,305,105);
@@ -64,20 +64,12 @@ function singBG () {
     rect(696,300,87,10);
     fill(0);
     textSize(10);
-    text("0",435,320);
-    text("33",530,320);
-    text("66",645,320);
-    text("100",730,320);
+    text("0",440,320);
+    text("33",535,320);
+    text("66",650,320);
+    text("100",735,320);
     textSize(30);
-    text("score",560,280); //score
-    
-    fill(255,0,0);
-    stroke(0);
-    push();
-    translate(650,370);
-    rotate(radians(180));
-    triangle(0,40,40,40,20,0)
-    pop(); // point
+    text("score",590,270); //score
     
     fill(188,229,92);
     noStroke()
@@ -164,9 +156,9 @@ function singBG () {
     ellipse(800,485,40,40);
     triangle(750,490,820,490,785,540); 
     textSize(12);
-    text("Merry", 734,555);
+    text("Merry", 720,555);
     fill(107,153,0);
-    text("christmas!",768,555); //heart
+    text("christmas!",770,555); //heart
     pop();
 }
 
