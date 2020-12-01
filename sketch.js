@@ -20,14 +20,15 @@ let songNum = ''; //부를 노래(시작 누를 때까지 누른 키값 문자�
 let songTitle = '';
 let songSinger = '';
 let lyrics;
-let song; // mr 불러올 것(loadSound)
+let mrs = {'12250': ''}; // mr 불러올 것(loadSound).
+let song;
 
 let index = 0; // 노래 내 인덱스(경과시간에 따른)
 let partScore = []; // 구간 점수(구간 내에 점수 다 저장하는 곳. 구간 끝날 때 평균 내고 [] 리셋)
 let scores = []; // 구간당 평균 저장하는 곳. 마지막에 평균 낼 것
 let finalScore; // scores의 avg
 
-let songStage = 'hair';
+let songStage = 'shoes';
 let character;
 let parts = ['hair', 'top', 'bottom', 'shoes', 'face'];
 let clothes = {
@@ -63,6 +64,10 @@ function preload() {
         }
         clothes[part] = images;
     });
+
+    Object.keys(mrs).forEach ( (key) => {
+        mrs[key] = loadSound(`assets/songs/${key}.mp3`);
+    })
 
     character = loadImage('assets/images/character.png');
 };
@@ -178,10 +183,10 @@ function mousePressed() {
         case 'ready':
             break;
         case 'end':
+            if (restartBtn.over(mouseX, mouseY)) state = 'ready';
             songNum = '';
             index = 0;
-            state = 'end';
-            state = 'ready';
+            songStage = 'hair';
             break;
         default:
             break;
@@ -200,8 +205,8 @@ function keyPressed() {
                     songTitle = songs[songNum].title;
                     songSinger = songs[songNum].singer;
                     lyrics = songs[songNum].lyrics;
-                    state = 'loading';
-                    song = loadSound(`assets/songs/${songNum}.mp3`, startSing); 
+                    song = mrs[songNum];
+                    startSing();
                 } else {
                     alert('해당하는 노래가 없습니다! 번호를 확인해주세요!');
                 }
@@ -256,7 +261,7 @@ function showScore() {
     // 1. 스테이지에 따른 캐릭터와 옷장
     clothes[songStage].forEach( cloth => {
         const index = clothes[songStage].indexOf(cloth);
-        image(cloth, 695.25 - index * 102.25, 400, 90, 90);
+        image(cloth, 695.25 - index * 102.25, 400, 80, 80);
     });
     // 2. 점수에 따라 옷장 사이를 움직이는 화살표
     if (song.currentTime() > 7 && !(['전주 중', '간주 중'].includes(lyrics[index][1]))) {
