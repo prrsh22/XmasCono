@@ -28,7 +28,7 @@ let partScore = []; // 구간 점수(구간 내에 점수 다 저장하는 곳. 
 let scores = []; // 구간당 평균 저장하는 곳. 마지막에 평균 낼 것
 let finalScore; // scores의 avg
 
-let songStage = 'shoes';
+let songStage = 'hair';
 let character;
 let parts = ['hair', 'top', 'bottom', 'shoes', 'face'];
 let clothes = {
@@ -48,10 +48,9 @@ let micLevel;
 //머리, 상의, 하의, 신발, 표정 순 - 앞의 scores에 따라 불러오면 됨
 let restartBtn;
 let recordBtn;
-
+let toMainBtn;
 
 function preload() {
-    //이미지는 프리로드. 노래는 안하는 게 나을듯 어차피 loading 화면 필요(근데 p5에서 너무오래걸려)
     bg = loadImage('assets/images/background.png');
     garland = loadImage('assets/images/garland.png');
     presents = loadImage('assets/images/presents.png');
@@ -76,7 +75,8 @@ function setup() {
     createCanvas(900, 900);
     initBtn = new Button('시작', 30, 450, 700, 200, 100);
     iPrevBtn = new Button('<', 50, );
-    restartBtn = new Button('다시 도전!', 30, 450, 600, 200, 100);
+    restartBtn = new Button('다시 도전!', 30, 300, 600, 200, 100);
+    toMainBtn = new Button('메인으로', 30, 600, 600, 200, 100);
     mic = new p5.AudioIn();
     mic.start();
 }
@@ -157,6 +157,7 @@ function draw() {
             fill(0);
             text('끝', 450, 450);
             restartBtn.show();
+            toMainBtn.show();
             break;
 
         default: // loading 등등
@@ -183,10 +184,12 @@ function mousePressed() {
         case 'ready':
             break;
         case 'end':
-            if (restartBtn.over(mouseX, mouseY)) state = 'ready';
             songNum = '';
             index = 0;
             songStage = 'hair';
+            if (restartBtn.over(mouseX, mouseY)) state = 'ready';
+            if (toMainBtn.over(mouseX, mouseY)) state = 'initial';
+ 
             break;
         default:
             break;
@@ -240,6 +243,14 @@ function showLyrics() {
           index++;
         }
     }
+
+    //같은 곡 또 부르는 경우, 멈춘 시점의 currentTime이 유지되기 때문에
+    // index가 ++되어 1이 됨.. 그것 리셋
+    if (index > 0) {
+        if (lyrics[index - 1][0] > song.currentTime()){
+            index--;
+        }
+    }
     
     if (index < lyrics.length - 1) {
     
@@ -261,7 +272,15 @@ function showScore() {
     // 1. 스테이지에 따른 캐릭터와 옷장
     clothes[songStage].forEach( cloth => {
         const index = clothes[songStage].indexOf(cloth);
-        image(cloth, 695.25 - index * 102.25, 400, 80, 80);
+        if (songStage === 'face') {
+            if (index === 1) {
+                image(cloth, 695.25 - index * 102.25, 400, 57, 5);  
+            } else {
+                image(cloth, 695.25 - index * 102.25, 400, 57, 29)
+            }
+        } else {
+            image(cloth, 695.25 - index * 102.25, 400, 80, 80);
+        }
     });
     // 2. 점수에 따라 옷장 사이를 움직이는 화살표
     if (song.currentTime() > 7 && !(['전주 중', '간주 중'].includes(lyrics[index][1]))) {
