@@ -80,10 +80,9 @@ function preload() {
 
 function setup() {
     createCanvas(900, 900);
-    initBtn = new Button('시작', 30, 450, 700, 200, 100);
     iPrevBtn = new Button('<', 50, );
-    restartBtn = new Button('다시 도전!', 30, 300, 600, 200, 100);
-    toMainBtn = new Button('메인으로', 30, 600, 600, 200, 100);
+    restartBtn = new Button('다시 도전!', 30, 300, 800, 200, 100);
+    toMainBtn = new Button('메인으로', 30, 600, 800, 200, 100);
     mic = new p5.AudioIn();
     mic.start();
 }
@@ -103,7 +102,6 @@ function draw() {
     switch(state){
         case 'initial':
             initialBG();
-            initBtn.show();
             break;
 
         case 'instruction':
@@ -160,8 +158,13 @@ function draw() {
 
         case 'end':
             endingBG();
-            fill(0);
-            text('끝', 450, 450);
+            image(character, 450, 530, 482/2, 789/2); // .width, .height 으로 바꿔두기.
+            image(clothes.hair[0], 450, 400, 408/2, 434/2); // clothesGot[] 으로 빼올 것
+            image(clothes.top[0], 450, 540, 490/2, 323/2);
+            image(clothes.bottom[0], 450, 630, 238/2, 235/2)
+            image(clothes.shoes[0], 450, 710, 320/2, 73/2);
+            image(clothes.face[0], 450, 430, 57, clothes.face[0].height)
+
             restartBtn.show();
             toMainBtn.show();
             break;
@@ -182,10 +185,16 @@ function startSing () {
 function mousePressed() {
     switch(state){
         case 'initial':
-            if (initBtn.over(mouseX, mouseY)) state = 'instruction';
+            if (mouseX < 610 && mouseX > 550 && mouseY < 450 && mouseY > 400) {
+                state = 'ready';
+            } else if (mouseX < 325 && mouseX > 275 && mouseY < 437 && mouseY > 395) {
+                state = 'instruction';
+            }
             break;
         case 'instruction':
-            state = 'ready';
+            if(mouseX>730&&mouseX<790&&mouseY>450&&mouseY<505){
+                state = 'ready';
+            }
             break;
         case 'ready':
             break;
