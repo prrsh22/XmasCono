@@ -17,7 +17,7 @@ class Button {
     }
     
     show(){
-        (this.over(mouseX, mouseY)) ? fill('red'):fill('yellow');
+        (this.over(mouseX, mouseY)) ? fill('green'):fill('yellow');
 
         rectMode(CENTER);
         rect(this.x, this.y, this.w, this.h);
