@@ -1,5 +1,9 @@
 let state = 'initial';
 
+// fonts
+let letsPlay;
+let yun;
+
 // Background
 let bg;
 let garland;
@@ -54,6 +58,9 @@ function preload() {
     bg = loadImage('assets/images/background.png');
     garland = loadImage('assets/images/garland.png');
     presents = loadImage('assets/images/presents.png');
+
+    letsPlay = loadFont('assets/fonts/LetsPlay.ttf');
+    yun = loadFont('assets/fonts/YunTaemin.ttf');
     
     parts.forEach( part => {
         let images = [];
@@ -101,20 +108,19 @@ function draw() {
 
         case 'instruction':
             instructionBG();
-            fill(0);
-            text('설명', 450, 450);
             // const textBox = textBox(iStage); textBox.show()
             // iNextBtn, iPrevBtn
             break;
 
         case 'ready':
             // 배경 & 화면 클래스. 노래 목록도. 목록에 시작 버튼, 곡번호 입력칸도!
-            fill(255);
-            rect(450, 450, 300, 100);
-            textSize(30);
+            readyBG();
+            textSize(25);
             push();
+            fill(255);
+            rect(450, 530, 200, 50);
             fill(0);
-            text(`${songNum}`, 450, 450);
+            text(`${songNum}`, 450, 530);
             pop();
 
             if (songs[songNum]) {
