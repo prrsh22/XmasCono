@@ -159,6 +159,14 @@ function draw() {
                 state = 'end';
                 endingSound.play();
                 countDown = -1;
+
+                //finalScore 산출
+                let sum = 0;
+                scores.forEach(score => {
+                    sum += score;
+                });
+                finalScore = int(sum / 5); //중간에 취소했어도 5로 나눔. 중도취소니까
+
                 return;
             }
             
@@ -234,6 +242,7 @@ function draw() {
 
         case 'end':
             endingBG();
+            text(`${finalScore}`, 500, 250)
             image(character, 450, 530, 482/2, 789/2);
             putOnClothes();
             restartBtn.show();
