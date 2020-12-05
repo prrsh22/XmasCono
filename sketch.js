@@ -43,6 +43,9 @@ let scores = []; // 구간당 평균 저장하는 곳. 마지막에 평균 낼 �
 let finalScore; // scores의 avg
 let threshold = 40;
 
+let cam;
+let camOn = false;
+
 let songStage = 'hair';
 let character;
 let parts = ['hair', 'top', 'bottom', 'shoes', 'face'];
@@ -103,6 +106,9 @@ function setup() {
 
     mic = new p5.AudioIn();
     mic.start();
+
+    cam = createCapture(VIDEO);
+    cam.hide();
 }
 
 function draw() {
@@ -161,7 +167,8 @@ function draw() {
             push();
             textSize(25);
             fill('yellow');
-            text(`현재 곡: ${songTitle} - ${songSinger}`, 450, 200);
+            if (camOn) text(`노래를 부르셔야 거울이 사라집니다!`, 450, 200);
+            else text(`현재 곡: ${songTitle} - ${songSinger}`, 450, 200);
             pop();
             image(character, 285, 390, 482/3, 789/3);
             putOnClothes();
@@ -190,6 +197,10 @@ function draw() {
                     text(`- ${songSinger}`, 450, 400);
                 } else {
                     showScore();
+                }
+
+                if (camOn) {
+                    image(cam, 450, 450, 750, 460);
                 }
             }
 
@@ -225,7 +236,6 @@ function draw() {
             endingBG();
             image(character, 450, 530, 482/2, 789/2);
             putOnClothes();
-
             restartBtn.show();
             toMainBtn.show();
             break;
@@ -427,6 +437,15 @@ function calScore() {
             if (tempScore > threshold || partScore[partScore.length-1] < threshold) {
                 micLevel = tempScore;
             } // 계속 안 부르는 것 vs 노래 사이사이 끊김 구별 (아까도 조용했는지 체크)
+
+            if (partScore[partScore.length-2] < threshold &&
+                partScore[partScore.length-1] < threshold
+                && tempScore < threshold) {
+                    camOn = true;} //3연속 저득점일 때 캠온
+            
+            if (tempScore > threshold) {
+                camOn = false;
+            }
 
             partScore.push(tempScore);
             console.log(partScore);
