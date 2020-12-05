@@ -144,6 +144,7 @@ function draw() {
                 //rect(450, 200, 300, 100);
                 //시작 전, 해당하는 노래가 있으면 일치하는 노래 있다고 목록에서 표시
             }
+            
             break;
 
         case 'sing':
@@ -223,11 +224,7 @@ function draw() {
         case 'end':
             endingBG();
             image(character, 450, 530, 482/2, 789/2);
-            image(clothes.hair[0], 450, 400, 408/2, 434/2); //clothesGot.hair
-            image(clothes.top[0], 450, 540, 490/2, 323/2);
-            image(clothes.bottom[0], 450, 630, 238/2, 235/2);
-            image(clothes.shoes[0], 450, 710, 320/2, 73/2);
-            image(clothes.face[0], 450, 430, 57, clothes.face[0].height);
+            putOnClothes();
 
             restartBtn.show();
             toMainBtn.show();
@@ -260,7 +257,7 @@ function mousePressed() {
             break;
         case 'sing':
             if (!mode) {
-                if (v1ModeBtn.over(mouseX, mouseY) || fullModeBtn.over((mouseX, mouseY))) {
+                if (v1ModeBtn.over(mouseX, mouseY) || fullModeBtn.over(mouseX, mouseY)) {
                     
                     (v1ModeBtn.over(mouseX, mouseY)) ? mode = 'v1' : mode = 'full';
 
@@ -273,15 +270,7 @@ function mousePressed() {
             }
             break;
         case 'end':
-            songNum = '';
-            index = 0;
-            songStage = 'hair';
-            mode = undefined;
-            song = undefined;
-            lyrics = undefined;
-            modeLyrics = undefined;
-            partScore = [];
-            scores = [];
+            resetVariables();
             if (restartBtn.over(mouseX, mouseY)) state = 'ready';
             if (toMainBtn.over(mouseX, mouseY)) state = 'initial';
  
@@ -289,6 +278,17 @@ function mousePressed() {
         default:
             break;
     }
+}
+
+function resetVariables () {
+    songNum = '';
+    index = 0;
+    songStage = 'hair';
+    mode = undefined;
+    song = undefined;
+    lyrics = undefined;
+    modeLyrics = undefined;
+    partScore = [];
 }
 
 function keyPressed() {
@@ -305,6 +305,8 @@ function keyPressed() {
                     lyrics = songs[songNum].lyrics;
                     modeLyrics = lyrics.full; //일단 full로 해놓고 모드 입력받으면 바꾸기
                     song = mrs[songNum];
+                    clothesGot = {};
+                    scores = [];
                     state = 'sing';
                 } else {
                     alert('해당하는 노래가 없습니다! 번호를 확인해주세요!');
@@ -333,11 +335,39 @@ function keyPressed() {
 }
 
 function putOnClothes() {
-    image(clothesGot.hair[0], 450, 400, 408/2, 434/2); //clothesGot.hair
-    image(clothesGot.top[0], 450, 540, 490/2, 323/2);
-    image(clothesGot.bottom[0], 450, 630, 238/2, 235/2);
-    image(clothesGot.shoes[0], 450, 710, 320/2, 73/2);
-    image(clothesGot.face[0], 450, 430, 57, clothes.face[0].height);
+    const {hair, top, bottom, shoes, face} = clothesGot;
+
+    if (state === 'sing') {
+        if (top) image(top, 285, 395, top.width/3, top.height/3);
+        if (hair) {
+            if (scores[0] > 70) {
+                image(hair, 285, 310, hair.width/3, hair.height/3);
+            } else if (scores[0] > 40) {
+                image(hair, 285, 280, hair.width/3, hair.height/3);
+            } else {
+                image(hair, 285, 260, hair.width/3, hair.height/3);
+            }
+        }
+        if (bottom) image(bottom, 285, 470, bottom.width/3, bottom.height/3);
+        if (shoes) image( shoes, 285, 510, shoes.width/3, shoes.height/3);
+        if (face) image( face, 285, 320, face.width/2, face.height/2);
+    } else {
+        if (top) image(top, 450, 540, top.width/2, top.height/2);
+
+        if (hair) {
+            if (scores[0] > 70) {
+                image(hair, 450, 400, hair.width/2, hair.height/2);
+            } else if (scores[0] > 40) {
+                image(hair, 450, 370, hair.width/2, hair.height/2);
+            } else {
+                image(hair, 450, 330, hair.width/2, hair.height/2);
+            }
+        }
+        if (bottom) image(bottom, 450, 630, bottom.width/2, bottom.height/2);
+        if (shoes) image(shoes, 450, 710, shoes.width/2, shoes.height/2);
+        if (face) image(face, 450, 430, 57, face.height);
+    }
+    
 }
 
 function setIndex() {
@@ -434,7 +464,7 @@ function showScore() {
                 image(cloth, 695.25 - index * 102.25, 400, 57, 29)
             }
         } else {
-            image(cloth, 695.25 - index * 102.25, 400, 80, 80);
+            image(cloth, 695.25 - index * 102.25, 400, cloth.width/5.5, cloth.height/5.5);
         }
     });
     // 2. 점수에 따라 옷장 사이를 움직이는 화살표
