@@ -29,19 +29,19 @@ let modeLyrics;
 let mrs = {'12250': ''}; // mr 불러올 것(loadSound).
 let song;
 
-let mode; // 완창, 1절, 2절, 후렴
+let mode; // 완창, 1절
 let v1ModeBtn;
 let fullModeBtn;
 
 let countDown = -1;
-let millisNow;
-
-let currentTime;
+let millisForCountDown;
+let millisForScore;
 
 let index = 0; // 노래 내 인덱스(경과시간에 따른)
 let partScore = []; // 구간 점수(구간 내에 점수 다 저장하는 곳. 구간 끝날 때 평균 내고 [] 리셋)
 let scores = []; // 구간당 평균 저장하는 곳. 마지막에 평균 낼 것
 let finalScore; // scores의 avg
+let threshold = 40;
 
 let songStage = 'hair';
 let character;
@@ -54,7 +54,7 @@ let clothes = {
     face: []
 } // 옷 이미지들 불러올 곳(preload)
 
-let clothesGot = []; //구간마다 딴 옷
+let clothesGot = {}; //구간마다 딴 옷
 
 let mic;
 let micLevel;
@@ -155,6 +155,7 @@ function draw() {
                 return;
             }
             
+            calScore();
             singBG();
             push();
             textSize(25);
@@ -162,6 +163,7 @@ function draw() {
             text(`현재 곡: ${songTitle} - ${songSinger}`, 450, 200);
             pop();
             image(character, 285, 390, 482/3, 789/3);
+            putOnClothes();
 
             if (!mode) {
                 //모드를 안 정한 상태
@@ -202,14 +204,15 @@ function draw() {
                 pop();
 
 
-                if (millis() - millisNow >= 1000) {
+                if (millis() - millisForCountDown >= 1000) {
                     countDown--;
-                    millisNow = millis();
+                    millisForCountDown = millis();
                     if (countDown === 0) {
                         if (mode === 'full') song.play();
                         else song.play(undefined, undefined, undefined, modeLyrics[0][0], 
                             modeLyrics[modeLyrics.length - 1][0] - modeLyrics[0][0]);
-
+                        
+                        millisForScore = millis();
                     }
                 }
             }        
@@ -220,11 +223,11 @@ function draw() {
         case 'end':
             endingBG();
             image(character, 450, 530, 482/2, 789/2);
-            image(clothes.hair[0], 450, 400, 408/2, 434/2);
+            image(clothes.hair[0], 450, 400, 408/2, 434/2); //clothesGot.hair
             image(clothes.top[0], 450, 540, 490/2, 323/2);
-            image(clothes.bottom[0], 450, 630, 238/2, 235/2)
+            image(clothes.bottom[0], 450, 630, 238/2, 235/2);
             image(clothes.shoes[0], 450, 710, 320/2, 73/2);
-            image(clothes.face[0], 450, 430, 57, clothes.face[0].height)
+            image(clothes.face[0], 450, 430, 57, clothes.face[0].height);
 
             restartBtn.show();
             toMainBtn.show();
@@ -257,15 +260,16 @@ function mousePressed() {
             break;
         case 'sing':
             if (!mode) {
-                if (mouseX < 400 && mouseX > 200 && mouseY < 500 && mouseY > 400) {
-                    mode = 'v1';
-                } else if (mouseX < 700 && mouseX > 500 && mouseY < 500 && mouseY > 400) {
-                    mode = 'full';
-                }
-                if (mode === 'v1') index = 1;
-                countDown = 3;
-                modeLyrics = lyrics[mode];
-                millisNow = millis();
+                if (v1ModeBtn.over(mouseX, mouseY) || fullModeBtn.over((mouseX, mouseY))) {
+                    
+                    (v1ModeBtn.over(mouseX, mouseY)) ? mode = 'v1' : mode = 'full';
+
+                    if (mode === 'v1') index = 1;
+                    countDown = 3;
+                    modeLyrics = lyrics[mode];
+                    console.log(mode);
+                    millisForCountDown = millis();
+                }  
             }
             break;
         case 'end':
@@ -276,6 +280,8 @@ function mousePressed() {
             song = undefined;
             lyrics = undefined;
             modeLyrics = undefined;
+            partScore = [];
+            scores = [];
             if (restartBtn.over(mouseX, mouseY)) state = 'ready';
             if (toMainBtn.over(mouseX, mouseY)) state = 'initial';
  
@@ -326,20 +332,79 @@ function keyPressed() {
     }
 }
 
+function putOnClothes() {
+    image(clothesGot.hair[0], 450, 400, 408/2, 434/2); //clothesGot.hair
+    image(clothesGot.top[0], 450, 540, 490/2, 323/2);
+    image(clothesGot.bottom[0], 450, 630, 238/2, 235/2);
+    image(clothesGot.shoes[0], 450, 710, 320/2, 73/2);
+    image(clothesGot.face[0], 450, 430, 57, clothes.face[0].height);
+}
+
 function setIndex() {
     if (song.isPlaying) {
-        while (index < modeLyrics.length - 2 && song.currentTime() > modeLyrics[index][0]) {
+        while (index <= modeLyrics.length - 2 && song.currentTime() > modeLyrics[index][0]) {
             index++;
+
+            if (modeLyrics[index][2] || index === modeLyrics.length -1) {
+                let sum = 0;
+                let ignore = 0;
+
+                partScore.forEach( (score, index) => {
+                    if (score < threshold && partScore[index-1] > threshold) { 
+                        // 노래 안불러서 점수 낮은 게 아니라 노래 사이였을 경우
+                        ignore++;
+                    } else {
+                        sum += score;
+                    }
+                });
+                const partAvg = sum/(partScore.length-ignore);
+                scores.push(partAvg);
+                console.log(scores);
+                partScore = [];
+
+                // 옷 배정
+                if (partAvg > 70) {
+                    clothesGot[songStage] = clothes[songStage][0];
+                } else if (partAvg > 40) {
+                    clothesGot[songStage] = clothes[songStage][1];
+                } else {
+                    clothesGot[songStage] = clothes[songStage][2];
+                }
+        
+                if (modeLyrics[index][2]) {
+                    songStage = modeLyrics[index][2];
+                }
+            }
+
         }
-    
         //같은 곡 또 부르는 경우, 멈춘 시점의 currentTime이 유지되기 때문에
         // index가 ++되어 1이 됨.. 그것 리셋
     
         while (index > 0 && modeLyrics[index - 1][0] > song.currentTime()){
             index--;
-        }    
+        }
     }
 }
+
+function calScore() {
+    // 구간 파악 및 구간 전환 시 이전 구간 평균 점수 산출.. 은 전환시 해야해서 setIndex로 옮김
+    // 구간 점수(partScores) 채우기 - 1초마다
+    if (millis() - millisForScore >= 1000) {
+        //전주간주 아닐때만 산출
+        if (!['전주 중', '간주 중'].includes(modeLyrics[index][1])) {
+            const tempScore = Math.min(int(1000 * mic.getLevel()) + 20, 100);
+            
+            if (tempScore > threshold || partScore[partScore.length-1] < threshold) {
+                micLevel = tempScore;
+            } // 계속 안 부르는 것 vs 노래 사이사이 끊김 구별 (아까도 조용했는지 체크)
+
+            partScore.push(tempScore);
+            console.log(partScore);
+        }
+        millisForScore = millis();
+    } 
+}
+
 function showLyrics() {
 
     if (index < modeLyrics.length - 1) {
@@ -373,8 +438,7 @@ function showScore() {
         }
     });
     // 2. 점수에 따라 옷장 사이를 움직이는 화살표
-    if (song.currentTime() > 7 && !(['전주 중', '간주 중'].includes(modeLyrics[index][1]))) {
-        micLevel = Math.min(int(1000 * mic.getLevel()), 100);
+    if (!(['전주 중', '간주 중'].includes(modeLyrics[index][1]))) {
         push();
         fill(255,0,0);
         stroke(0);
