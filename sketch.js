@@ -357,6 +357,7 @@ function putOnClothes() {
     const {hair, top, bottom, shoes, face} = clothesGot;
 
     if (state === 'sing') {
+        if (bottom) image(bottom, 285, 470, bottom.width/3, bottom.height/3);
         if (top) image(top, 285, 395, top.width/3, top.height/3);
         if (hair) {
             if (scores[0] > 70) {
@@ -367,10 +368,10 @@ function putOnClothes() {
                 image(hair, 285, 260, hair.width/3, hair.height/3);
             }
         }
-        if (bottom) image(bottom, 285, 470, bottom.width/3, bottom.height/3);
         if (shoes) image( shoes, 285, 510, shoes.width/3, shoes.height/3);
         if (face) image( face, 285, 320, face.width/2, face.height/2);
     } else {
+        if (bottom) image(bottom, 450, 630, bottom.width/2, bottom.height/2);
         if (top) image(top, 450, 540, top.width/2, top.height/2);
 
         if (hair) {
@@ -382,7 +383,6 @@ function putOnClothes() {
                 image(hair, 450, 330, hair.width/2, hair.height/2);
             }
         }
-        if (bottom) image(bottom, 450, 630, bottom.width/2, bottom.height/2);
         if (shoes) image(shoes, 450, 710, shoes.width/2, shoes.height/2);
         if (face) image(face, 450, 430, 57, face.height);
     }
@@ -438,7 +438,8 @@ function setIndex() {
 function calScore() {
     // 구간 파악 및 구간 전환 시 이전 구간 평균 점수 산출.. 은 전환시 해야해서 setIndex로 옮김
     // 구간 점수(partScores) 채우기 - 1초마다
-    if (millis() - millisForScore >= 1000) {
+
+    if (song.isPlaying() && millis() - millisForScore >= 1000) {
         //전주간주 아닐때만 산출
         if (!['전주 중', '간주 중'].includes(modeLyrics[index][1])) {
             const tempScore = Math.min(int(1000 * mic.getLevel()) + 20, 100);
