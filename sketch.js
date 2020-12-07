@@ -29,7 +29,7 @@ let modeLyrics;
 let mrs = {'12250': ''}; // mr 불러올 것(loadSound).
 let song;
 
-let mode; // 완창, 1절
+let mode; // 1절, 하이라이트
 let v1ModeBtn;
 let fullModeBtn;
 
@@ -102,7 +102,7 @@ function setup() {
     toMainBtn = new Button('메인으로', 30, 600, 800, 200, 100);
 
     v1ModeBtn = new Button('1절만', 30, 300, 450, 200, 100);
-    fullModeBtn = new Button('다 부르기', 30, 600, 450, 200, 100);
+    hlModeBtn = new Button('하이라이트만', 30, 600, 450, 200, 100);
 
     mic = new p5.AudioIn();
     mic.start();
@@ -187,7 +187,7 @@ function draw() {
                 fill(0, 180);
                 rect(450, 450, 750, 540);
                 v1ModeBtn.show();
-                fullModeBtn.show();
+                hlModeBtn.show();
                 pop();
             } else {
                 if (countDown === 0){
@@ -228,7 +228,7 @@ function draw() {
                     countDown--;
                     millisForCountDown = millis();
                     if (countDown === 0) {
-                        if (mode === 'full') song.play();
+                        if (mode === 'v1' && modeLyrics[0][1] === '전주 중') song.play();
                         else song.play(undefined, undefined, undefined, modeLyrics[0][0], 
                             modeLyrics[modeLyrics.length - 1][0] - modeLyrics[0][0]);
                         
@@ -276,11 +276,11 @@ function mousePressed() {
             break;
         case 'sing':
             if (!mode) {
-                if (v1ModeBtn.over(mouseX, mouseY) || fullModeBtn.over(mouseX, mouseY)) {
+                if (v1ModeBtn.over(mouseX, mouseY) || hlModeBtn.over(mouseX, mouseY)) {
                     
-                    (v1ModeBtn.over(mouseX, mouseY)) ? mode = 'v1' : mode = 'full';
+                    (v1ModeBtn.over(mouseX, mouseY)) ? mode = 'v1' : mode = 'hl';
 
-                    if (mode === 'v1') index = 1;
+                    if (mode === 'hl') index = 1;
                     countDown = 3;
                     modeLyrics = lyrics[mode];
                     console.log(mode);
