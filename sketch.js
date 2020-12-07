@@ -26,7 +26,8 @@ let songTitle = '';
 let songSinger = '';
 let lyrics;
 let modeLyrics;
-let mrs = {'12250': ''}; // mr 불러올 것(loadSound).
+let mrs = {'12250': '', '202012': '',
+'93516': '', '93626': '', '12408': '', '12170': ''}; // mr 불러올 것(loadSound).
 let song;
 
 let mode; // 1절, 하이라이트
@@ -155,6 +156,10 @@ function draw() {
 
         case 'sing':
             
+            if (countDown === 0 && song.currentTime() > modeLyrics[modeLyrics.length -1][0]) {
+                song.stop();
+            }
+
             if (countDown === 0 && !song.isPlaying()){
                 state = 'end';
                 endingSound.play();
@@ -261,11 +266,14 @@ function draw() {
 function mousePressed() {
     switch(state){
         case 'initial':
-            if (mouseX < 610 && mouseX > 550 && mouseY < 450 && mouseY > 400) {
+            if (mouseX > 405 && mouseX < 495 && mouseY > 455 && mouseY && 510) {
                 state = 'ready';
-            } else if (mouseX < 325 && mouseX > 275 && mouseY < 437 && mouseY > 395) {
-                state = 'instruction';
             }
+            // if (mouseX < 610 && mouseX > 550 && mouseY < 450 && mouseY > 400) {
+            //     state = 'ready';
+            // } else if (mouseX < 325 && mouseX > 275 && mouseY < 437 && mouseY > 395) {
+            //     state = 'instruction';
+            // }
             break;
         case 'instruction':
             if(mouseX>730&&mouseX<790&&mouseY>450&&mouseY<505){
@@ -308,6 +316,7 @@ function resetVariables () {
     lyrics = undefined;
     modeLyrics = undefined;
     partScore = [];
+    camOn = false;
 }
 
 function keyPressed() {
@@ -322,7 +331,7 @@ function keyPressed() {
                     songTitle = songs[songNum].title;
                     songSinger = songs[songNum].singer;
                     lyrics = songs[songNum].lyrics;
-                    modeLyrics = lyrics.full; //일단 full로 해놓고 모드 입력받으면 바꾸기
+                    modeLyrics = lyrics.v1; //일단 full로 해놓고 모드 입력받으면 바꾸기
                     song = mrs[songNum];
                     clothesGot = {};
                     scores = [];
@@ -441,7 +450,7 @@ function calScore() {
 
     if (song.isPlaying() && millis() - millisForScore >= 1000) {
         //전주간주 아닐때만 산출
-        if (!['전주 중', '간주 중'].includes(modeLyrics[index][1])) {
+        if (!['전주 중', '간주 중', ' '].includes(modeLyrics[index][1])) {
             const tempScore = Math.min(int(1000 * mic.getLevel()) + 20, 100);
             
             if (tempScore > threshold || partScore[partScore.length-1] < threshold) {
@@ -497,7 +506,7 @@ function showScore() {
         }
     });
     // 2. 점수에 따라 옷장 사이를 움직이는 화살표
-    if (!(['전주 중', '간주 중'].includes(modeLyrics[index][1]))) {
+    if (!(['전주 중', '간주 중', ' '].includes(modeLyrics[index][1]))) {
         push();
         fill(255,0,0);
         stroke(0);
