@@ -1,4 +1,7 @@
 let state = 'initial';
+let bgm;
+let nextSound;
+let clapSound;
 
 // fonts
 let letsPlay;
@@ -66,6 +69,8 @@ let clothesGot = {}; //구간마다 딴 옷
 let mic;
 let micLevel;
 
+let clapBtn;
+
 //end
 //머리, 상의, 하의, 신발, 표정 순 - 앞의 scores에 따라 불러오면 됨
 let restartBtn;
@@ -83,7 +88,7 @@ function preload() {
 
     letsPlay = loadFont('assets/fonts/LetsPlay.ttf');
     yun = loadFont('assets/fonts/YunTaemin.ttf');
-  temp = loadFont('assets/fonts/jua.ttf');
+    temp = loadFont('assets/fonts/jua.ttf');
     
     parts.forEach( part => {
         let images = [];
@@ -102,6 +107,10 @@ function preload() {
     endingSound = loadSound('assets/sounds/effects/ending.mp3');
     prince = loadImage('assets/images/prince.png');
     commentBubble = loadImage(`assets/images/commentBubble.png`);
+
+    bgm = loadSound('assets/sounds/songs/bgm.mp3');
+    clapSound = loadSound('assets/sounds/effects/clap.mp3');
+    nextSound = loadSound('assets/sounds/effects/next.wav');
 };
 
 function setup() {
@@ -112,11 +121,14 @@ function setup() {
     v1ModeBtn = new Button('1절만', 30, 300, 450, 200, 100);
     hlModeBtn = new Button('하이라이트만', 30, 600, 450, 200, 100);
 
+    clapBtn = new Button('박수', 30, 700, 525, 80, 40);
+
     mic = new p5.AudioIn();
     mic.start();
 
     cam = createCapture(VIDEO);
     cam.hide();
+    bgm.loop();
 }
 
 function draw() {
@@ -136,12 +148,9 @@ function draw() {
 
         case 'instruction':
             instructionBG();
-            // const textBox = textBox(iStage); textBox.show()
-            // iNextBtn, iPrevBtn
             break;
 
         case 'ready':
-            // 배경 & 화면 클래스. 노래 목록도. 목록에 시작 버튼, 곡번호 입력칸도!
             readyBG();
             textSize(25);
             push();
@@ -166,7 +175,8 @@ function draw() {
             break;
 
         case 'sing':
-            
+            bgm.stop();
+
             if (countDown === 0 && song.currentTime() > modeLyrics[modeLyrics.length -1][0]) {
                 song.stop();
             }
@@ -188,6 +198,7 @@ function draw() {
             
             calScore();
             singBG();
+            clapBtn.show();
             push();
             textSize(25);
             fill('yellow');
@@ -226,6 +237,7 @@ function draw() {
                 if (camOn) {
                     image(cam, 280, 290, 200, 130);
                 }
+
             }
 
             // 모드 정했고 카운트다운일 때
@@ -300,10 +312,12 @@ function mousePressed() {
         case 'initial':
             if (mouseX > 405 && mouseX < 495 && mouseY > 455 && mouseY && 510) {
                 state = 'instruction';
+                nextSound.play();
             }
             break;
         case 'instruction':
             if(mouseX>730&&mouseX<790&&mouseY>450&&mouseY<505){
+                nextSound.play();
                 if (iStage === 0) {
                     iStage++;
                 } else {
@@ -315,6 +329,7 @@ function mousePressed() {
         case 'ready':
             if (mouseX > 565 && mouseX < 710 && mouseY > 500 && mouseY < 520) {
                 page ? page--:page++;
+                nextSound.play();
             }
             break;
         case 'sing':
@@ -328,6 +343,8 @@ function mousePressed() {
                     modeLyrics = lyrics[mode];
                     millisForCountDown = millis();
                 }  
+            } else if (clapBtn.over(mouseX, mouseY)) {
+                clapSound.play(undefined, undefined, undefined, undefined, 3);
             }
             break;
         case 'end':
@@ -335,6 +352,7 @@ function mousePressed() {
                 resetVariables();
                 if (toMainBtn.over(mouseX, mouseY)) state = 'initial';
                 else state = 'ready';
+                bgm.loop();
             }
             break;
         default:
