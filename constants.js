@@ -163,7 +163,7 @@ const songs = {
                 [62.2, 'Please don\'t cry no tears now It\'s christmas baby','shoes'], 
                 [69, 'My snowman and me yea','face'], [75, 'My snowman and me'],[78, 'Baby'], [82, ' ']],
                 
-                v1 : [[1, ' '], [6.5 , '전주 중'], [11, 'Dont cry snowman right in front of me'], 
+                v1 : [[1, ' '], [6.5 , '전주 중'], [11, 'Don\'t cry snowman right in front of me'], 
                 [16, 'Who will catch your tears if you can\'t catch me, darling'], 
                 [20.7, 'If you can\'t catch me, darling','top'], [25, 'Don\'t cry snowman don\'t leave me this way',], 
                 [29.8, 'A puddle of water can\'t hold me close baby'], [35, 'Can\'t hold me close baby','bottom'], 
