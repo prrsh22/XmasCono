@@ -9,6 +9,7 @@ let temp;
 let bg;
 let garland;
 let presents;
+let keyExplantion;
 
 //initial
 let initBtn;
@@ -18,16 +19,18 @@ let iStage = 0;
 let iPrevBtn;
 let iNextBtn;
 let startBtn;
-let username; // 이름도 나중에 꼭 입력받을게요~~
 
-//ready & sing
+//ready & 
+let page = 0;
 let songNum = ''; //부를 노래(시작 누를 때까지 누른 키값 문자열로 합침)
+let placeHolder = '노래 번호를 입력해주세요: ';
 let songTitle = '';
 let songSinger = '';
 let lyrics;
 let modeLyrics;
-let mrs = {'12250': '', '202012': '',
-'93516': '', '93626': '', '12408': '', '12170': ''}; // mr 불러올 것(loadSound).
+let mrs = {'12250': '', '10290': '',
+'93516': '', '93626': '', '12408': '', '12170': '',
+'75218': '', '60910': '', '14116': ''}; // mr 불러올 것(loadSound).
 let song;
 
 let mode; // 1절, 하이라이트
@@ -66,14 +69,17 @@ let micLevel;
 //end
 //머리, 상의, 하의, 신발, 표정 순 - 앞의 scores에 따라 불러오면 됨
 let restartBtn;
-let recordBtn;
 let toMainBtn;
 let endingSound;
+let prince;
+let commentBubble;
+let comment;
 
 function preload() {
     bg = loadImage('assets/images/background.png');
     garland = loadImage('assets/images/garland.png');
     presents = loadImage('assets/images/presents.png');
+    keyExplantion = loadImage('assets/images/keyexplanation.png');
 
     letsPlay = loadFont('assets/fonts/LetsPlay.ttf');
     yun = loadFont('assets/fonts/YunTaemin.ttf');
@@ -94,13 +100,14 @@ function preload() {
 
     character = loadImage('assets/images/character.png');
     endingSound = loadSound('assets/sounds/effects/ending.mp3');
+    prince = loadImage('assets/images/prince.png');
+    commentBubble = loadImage(`assets/images/commentBubble.png`);
 };
 
 function setup() {
     createCanvas(900, 900);
-    iPrevBtn = new Button('<', 50, );
-    restartBtn = new Button('다시 도전!', 30, 300, 800, 200, 100);
-    toMainBtn = new Button('메인으로', 30, 600, 800, 200, 100);
+    restartBtn = new Button('다시 도전!', 18, 750, 240, 100, 50);
+    toMainBtn = new Button('메인으로', 18, 750, 300, 100, 50);
 
     v1ModeBtn = new Button('1절만', 30, 300, 450, 200, 100);
     hlModeBtn = new Button('하이라이트만', 30, 600, 450, 200, 100);
@@ -119,9 +126,6 @@ function draw() {
     imageMode(CENTER);
     textFont(temp);
 
-    image(bg,450,450,920,920);
-    image(garland,450,85,900,150);
-    image(presents,450,790,700,150);
 
     outsideBG();    
 
@@ -141,16 +145,23 @@ function draw() {
             readyBG();
             textSize(25);
             push();
+            textAlign(CENTER, CENTER);
             fill(255);
             rect(450, 530, 200, 50);
+            if (songNum === '') {
+                push();
+                fill(150);
+                textSize(15);
+                text(`${placeHolder}`, 450, 530);
+
+                if (millis() % 1000 < 400) {
+                    rect(525, 530, 2, 15);
+                }
+                pop();
+            }
             fill(0);
             text(`${songNum}`, 450, 530);
             pop();
-
-            if (songs[songNum]) {
-                //rect(450, 200, 300, 100);
-                //시작 전, 해당하는 노래가 있으면 일치하는 노래 있다고 목록에서 표시
-            }
             
             break;
 
@@ -190,7 +201,7 @@ function draw() {
                 //모드를 안 정한 상태
                 push();
                 fill(0, 180);
-                rect(450, 450, 750, 540);
+                rect(450, 439.5, 750, 520);
                 v1ModeBtn.show();
                 hlModeBtn.show();
                 pop();
@@ -213,7 +224,7 @@ function draw() {
                 }
 
                 if (camOn) {
-                    image(cam, 450, 450, 750, 460);
+                    image(cam, 280, 290, 200, 130);
                 }
             }
 
@@ -221,7 +232,7 @@ function draw() {
             if (countDown > 0) {
                 push();
                 fill(0, 180);
-                rect(450, 450, 750, 540);
+                rect(450, 439.5, 750, 520);
                 fill(255);
                 textSize(100);
                 textStyle(BOLD);
@@ -247,8 +258,29 @@ function draw() {
 
         case 'end':
             endingBG();
-            text(`${finalScore}`, 500, 250)
-            image(character, 450, 530, 482/2, 789/2);
+            push();
+            textSize(40);
+            text(`${finalScore}`, 490, 250)
+            pop();
+            image(character, 620, 470, 482/2, 789/2);
+            image(prince, 310, 450, prince.width/1.5, prince.height/1.5);
+            image(commentBubble, 145, 300, commentBubble.width/1.2, commentBubble.height/1.2);
+
+            push();
+            textSize(23);
+
+            if (finalScore > 80) {
+                comment = comments[0];
+            } else if (finalScore > 50) {
+                comment = comments[1];
+                textSize(18);
+            } else {
+                comment = comments[2];
+            }
+
+            textAlign(CENTER, CENTER);
+            text(`${comment}`, 125, 290);
+            pop();
             putOnClothes();
             restartBtn.show();
             toMainBtn.show();
@@ -267,20 +299,23 @@ function mousePressed() {
     switch(state){
         case 'initial':
             if (mouseX > 405 && mouseX < 495 && mouseY > 455 && mouseY && 510) {
-                state = 'ready';
+                state = 'instruction';
             }
-            // if (mouseX < 610 && mouseX > 550 && mouseY < 450 && mouseY > 400) {
-            //     state = 'ready';
-            // } else if (mouseX < 325 && mouseX > 275 && mouseY < 437 && mouseY > 395) {
-            //     state = 'instruction';
-            // }
             break;
         case 'instruction':
             if(mouseX>730&&mouseX<790&&mouseY>450&&mouseY<505){
-                state = 'ready';
+                if (iStage === 0) {
+                    iStage++;
+                } else {
+                    state = 'ready';
+                    iStage--; //그냥 미리 초기화
+                }
             }
             break;
         case 'ready':
+            if (mouseX > 565 && mouseX < 710 && mouseY > 500 && mouseY < 520) {
+                page ? page--:page++;
+            }
             break;
         case 'sing':
             if (!mode) {
@@ -291,16 +326,16 @@ function mousePressed() {
                     if (mode === 'hl') index = 1;
                     countDown = 3;
                     modeLyrics = lyrics[mode];
-                    console.log(mode);
                     millisForCountDown = millis();
                 }  
             }
             break;
         case 'end':
-            resetVariables();
-            if (restartBtn.over(mouseX, mouseY)) state = 'ready';
-            if (toMainBtn.over(mouseX, mouseY)) state = 'initial';
- 
+            if (restartBtn.over(mouseX, mouseY) || toMainBtn.over(mouseX, mouseY)) {
+                resetVariables();
+                if (toMainBtn.over(mouseX, mouseY)) state = 'initial';
+                else state = 'ready';
+            }
             break;
         default:
             break;
@@ -317,6 +352,9 @@ function resetVariables () {
     modeLyrics = undefined;
     partScore = [];
     camOn = false;
+    endingSound.stop();
+    page = 0;
+    micLevel = undefined;
 }
 
 function keyPressed() {
@@ -380,20 +418,20 @@ function putOnClothes() {
         if (shoes) image( shoes, 285, 510, shoes.width/3, shoes.height/3);
         if (face) image( face, 285, 320, face.width/2, face.height/2);
     } else {
-        if (bottom) image(bottom, 450, 630, bottom.width/2, bottom.height/2);
-        if (top) image(top, 450, 540, top.width/2, top.height/2);
+        if (bottom) image(bottom, 620, 570, bottom.width/2, bottom.height/2);
+        if (top) image(top, 620, 480, top.width/2, top.height/2);
 
         if (hair) {
             if (scores[0] > 70) {
-                image(hair, 450, 400, hair.width/2, hair.height/2);
+                image(hair, 620, 340, hair.width/2, hair.height/2);
             } else if (scores[0] > 40) {
-                image(hair, 450, 370, hair.width/2, hair.height/2);
+                image(hair, 620, 310, hair.width/2, hair.height/2);
             } else {
-                image(hair, 450, 330, hair.width/2, hair.height/2);
+                image(hair, 620, 270, hair.width/2, hair.height/2);
             }
         }
-        if (shoes) image(shoes, 450, 710, shoes.width/2, shoes.height/2);
-        if (face) image(face, 450, 430, 57, face.height);
+        if (shoes) image(shoes, 620, 650, shoes.width/2, shoes.height/2);
+        if (face) image(face, 620, 370, 57, face.height);
     }
     
 }
@@ -417,7 +455,6 @@ function setIndex() {
                 });
                 const partAvg = sum/(partScore.length-ignore);
                 scores.push(partAvg);
-                console.log(scores);
                 partScore = [];
 
                 // 옷 배정
@@ -434,10 +471,7 @@ function setIndex() {
                 }
             }
 
-        }
-        //같은 곡 또 부르는 경우, 멈춘 시점의 currentTime이 유지되기 때문에
-        // index가 ++되어 1이 됨.. 그것 리셋
-    
+        }    
         while (index > 0 && modeLyrics[index - 1][0] > song.currentTime()){
             index--;
         }
@@ -451,7 +485,7 @@ function calScore() {
     if (song.isPlaying() && millis() - millisForScore >= 1000) {
         //전주간주 아닐때만 산출
         if (!['전주 중', '간주 중', ' '].includes(modeLyrics[index][1])) {
-            const tempScore = Math.min(int(1000 * mic.getLevel()) + 20, 100);
+            const tempScore = Math.min(int(1300 * mic.getLevel()) + 20, 100);
             
             if (tempScore > threshold || partScore[partScore.length-1] < threshold) {
                 micLevel = tempScore;
@@ -467,7 +501,6 @@ function calScore() {
             }
 
             partScore.push(tempScore);
-            console.log(partScore);
         }
         millisForScore = millis();
     } 
@@ -510,11 +543,10 @@ function showScore() {
         push();
         fill(255,0,0);
         stroke(0);
-        translate(455+ micLevel * 3,370);
+        translate(450+ micLevel * 3,370);
         rotate(radians(180));
         triangle(0,40,40,40,20,0)
         pop(); // point
     }
 
-    // 3. 점수(구간)에 따라 달라지는 응원 멘트
 }
