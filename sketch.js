@@ -35,8 +35,10 @@ let mrs = {'12250': '', '10290': '',
 '93516': '', '93626': '', '12408': '', '12170': '',
 '75218': '', '60910': '', '14116': ''}; // mr 불러올 것(loadSound).
 let song;
+let numbers = [];
 
 let mode; // 1절, 하이라이트
+let mul = 1400; // 점수 산출 시 곱해주는 수(클수록 점수 후함)
 let v1ModeBtn;
 let fullModeBtn;
 
@@ -106,12 +108,16 @@ function preload() {
     character = loadImage('assets/images/character.png');
     endingSound = loadSound('assets/sounds/effects/ending.mp3');
     prince = loadImage('assets/images/prince.png');
-    commentBubble = loadImage(`assets/images/commentBubble.png`);
+    commentBubble = loadImage('assets/images/commentBubble.png');
 
     bgm = loadSound('assets/sounds/songs/bgm.mp3');
     clapSound = loadSound('assets/sounds/effects/clap.mp3');
     nextSound = loadSound('assets/sounds/effects/next.wav');
-};
+  
+  for (let i=0;i<10;i++) {
+    numbers[i] = loadSound(`assets/sounds/effects/${i}.mp3`);
+  }
+}
 
 function setup() {
     createCanvas(900, 900);
@@ -151,6 +157,7 @@ function draw() {
             break;
 
         case 'ready':
+            clothesGot = {}
             readyBG();
             textSize(25);
             push();
@@ -183,6 +190,7 @@ function draw() {
 
             if (countDown === 0 && !song.isPlaying()){
                 state = 'end';
+              clapSound.stop();
                 endingSound.play();
                 countDown = -1;
 
@@ -202,7 +210,7 @@ function draw() {
             push();
             textSize(25);
             fill('yellow');
-            if (camOn) text(`노래를 부르셔야 거울이 사라집니다!`, 450, 200);
+            if (camOn) text(`노래를 부르셔야 캠이 사라집니다!`, 450, 200);
             else text(`현재 곡: ${songTitle} - ${songSinger}`, 450, 200);
             pop();
             image(character, 285, 390, 482/3, 789/3);
@@ -215,6 +223,21 @@ function draw() {
                 rect(450, 439.5, 750, 520);
                 v1ModeBtn.show();
                 hlModeBtn.show();
+              
+              (mouseX > 385 && mouseX < 525 && mouseY > 555 && mouseY < 605 || mul === 2500) ? fill('yellow'):fill(255);
+                rect(450, 580, 150, 50);
+                fill(0);
+                textSize(20);
+              
+                text('점수 후하게!', 465, 577);
+              
+                stroke(0);
+                strokeWeight(4);
+              if (mul === 1400) {
+                fill(255);
+              }
+                rect(395, 580, 20, 20);
+              
                 pop();
             } else {
                 if (countDown === 0){
@@ -223,17 +246,8 @@ function draw() {
 
                 showLyrics();
                 //모드를 정하고 시작해야 하는 상태
-                if ((mode === 'full')&&(song.currentTime()<5)) {
-                    //완창상태고 전주 중일 때
-                    fill(255);
-                    rect(450, 390, 750, 340);
-                    fill(0);
-                    text(`${songTitle}`, 450, 360);
-                    text(`- ${songSinger}`, 450, 400);
-                } else {
-                    showScore();
-                }
-
+                showScore();
+              
                 if (camOn) {
                     image(cam, 280, 290, 200, 130);
                 }
@@ -281,9 +295,9 @@ function draw() {
             push();
             textSize(23);
 
-            if (finalScore > 80) {
+            if (finalScore >= 80) {
                 comment = comments[0];
-            } else if (finalScore > 50) {
+            } else if (finalScore >= 50) {
                 comment = comments[1];
                 textSize(18);
             } else {
@@ -342,9 +356,12 @@ function mousePressed() {
                     countDown = 3;
                     modeLyrics = lyrics[mode];
                     millisForCountDown = millis();
+                } else if (mouseX > 385 && mouseX < 525 && mouseY > 555 && mouseY < 605) {
+                  if (mul === 1400) mul = 2500;
+                  else mul = 1400;
                 }  
             } else if (clapBtn.over(mouseX, mouseY)) {
-                clapSound.play(undefined, undefined, undefined, undefined, 3);
+                clapSound.play();
             }
             break;
         case 'end':
@@ -373,11 +390,14 @@ function resetVariables () {
     endingSound.stop();
     page = 0;
     micLevel = undefined;
+    scores = [];
+    mul = 1400;
 }
 
 function keyPressed() {
     switch(state) {
         case 'ready':
+        
             if (key === 'Backspace') {
                 if (songNum.length > 0) songNum = songNum.slice(0, -1);
             } else if (key === 'Enter') {
@@ -400,6 +420,8 @@ function keyPressed() {
             } else if (keyCode > 57 || keyCode < 48) {
                 alert('숫자만 입력해주세요!');
             } else {
+              
+              numbers[key].play();
                 songNum = songNum + key;
             }
             break;
@@ -503,15 +525,15 @@ function calScore() {
     if (song.isPlaying() && millis() - millisForScore >= 1000) {
         //전주간주 아닐때만 산출
         if (!['전주 중', '간주 중', ' '].includes(modeLyrics[index][1])) {
-            const tempScore = Math.min(int(1300 * mic.getLevel()) + 20, 100);
+            const tempScore = Math.min(int(mul * mic.getLevel()) + 20, 100);
             
             if (tempScore > threshold || partScore[partScore.length-1] < threshold) {
                 micLevel = tempScore;
             } // 계속 안 부르는 것 vs 노래 사이사이 끊김 구별 (아까도 조용했는지 체크)
 
             if (partScore[partScore.length-2] < threshold &&
-                partScore[partScore.length-1] < threshold
-                && tempScore < threshold) {
+                partScore[partScore.length-1] < threshold &&
+                tempScore < threshold) {
                     camOn = true;} //3연속 저득점일 때 캠온
             
             if (tempScore > threshold) {
